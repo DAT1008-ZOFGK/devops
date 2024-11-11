@@ -18,7 +18,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                echo 'Checking out source code...'
+                echo 'Checking out source code'
                 checkout scm
             }
         }
@@ -27,14 +27,14 @@ pipeline {
             parallel {
                 stage('Static Code Analysis') {
                     steps {
-                        echo 'Running static code analysis with SonarQube...'
+                        echo 'Running static code analysis with SonarQube'
                         sh './gradlew sonarqube'
                     }
                 }
                 
                 stage('Dependency Vulnerability Scan') {
                     steps {
-                        echo 'Running dependency vulnerability scan...'
+                        echo 'Running dependency vulnerability scan'
                         sh './gradlew dependencyCheckAnalyze'
                     }
                 }
@@ -43,21 +43,21 @@ pipeline {
 
         stage('Build & Unit Tests') {
             steps {
-                echo 'Building project and running unit tests...'
+                echo 'Building project and running unit tests'
                 sh './gradlew clean build'
             }
         }
 
         stage('Performance Tests') {
             steps {
-                echo 'Running performance tests...'
+                echo 'Running performance tests'
                 sh './gradlew performanceTest'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker image...'
+                echo 'Building Docker image'
                 script {
                     docker.build(DOCKER_IMAGE)
                 }
@@ -66,7 +66,7 @@ pipeline {
 
         stage('Push Docker Image to Registry') {
             steps {
-                echo 'Pushing Docker image to registry...'
+                echo 'Pushing Docker image to registry'
                 script {
                     docker.withRegistry("https://${DOCKER_REGISTRY}", 'docker-credentials') {
                         docker.image(DOCKER_IMAGE).push()
@@ -77,7 +77,7 @@ pipeline {
 
         stage('Deploy to Staging') {
             steps {
-                echo 'Deploying to staging environment...'
+                echo 'Deploying to staging environment'
                 sh '''
                     kubectl set image deployment/${PROJECT_NAME} ${PROJECT_NAME}=${DOCKER_IMAGE} -n ${STAGING_ENV}
                 '''
@@ -86,7 +86,7 @@ pipeline {
 
         stage('Integration Tests in Staging') {
             steps {
-                echo 'Running integration tests in staging...'
+                echo 'Running integration tests in staging'
                 sh './gradlew integrationTest'
             }
         }
@@ -96,14 +96,14 @@ pipeline {
                 branch 'main'
             }
             steps {
-                echo 'Deploying to production environment...'
+                echo 'Deploying to production environment'
                 script {
                     try {
                         sh '''
                             kubectl set image deployment/${PROJECT_NAME} ${PROJECT_NAME}=${DOCKER_IMAGE} -n ${PROD_ENV}
                         '''
                     } catch (Exception e) {
-                        echo 'Deployment to production failed. Rolling back...'
+                        echo 'Deployment to production failed. Rolling back'
                         sh '''
                             kubectl rollout undo deployment/${PROJECT_NAME} -n ${PROD_ENV}
                         '''
@@ -116,7 +116,7 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning up workspace...'
+            echo 'Cleaning up workspace'
             cleanWs()
         }
 
